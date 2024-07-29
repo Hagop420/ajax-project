@@ -44,9 +44,10 @@ magnifying_glass.classList.add('fa-solid');
 // magnifying_glass.classList.add('m-1');
 magnifying_glass.classList.add('rounded');
 
-magnifying_glass.addEventListener('click', () => {
-  data.nextEntryId++;
-});
+// magnifying_glass.addEventListener('click', () => {
+//   data.nextEntryId++;
+//   console.log(8);
+// });
 
 const glassBtn = document.querySelector('.span_icon_glass');
 const $form = document.querySelector('.form-planet-finder');
@@ -292,16 +293,11 @@ $btn_title_bar.addEventListener('click', () => {
   // end
 });
 
-// Calling the Image/Video API
+// calling the API when the enter key is clicked/pressed
 
-glassBtn.addEventListener('click', () => {
-  const img = document.querySelector('.planet_img_api');
-  const idOne = document.querySelector('#onceCalled');
+const inputSearchOnEnter = document.querySelector('form input');
 
-  if (idOne) {
-    idOne.remove();
-  }
-
+function callApi() {
   // if user types in a planet name get the correct planet image
   const inputSearch = document.querySelector('form input').value;
   const xhr = new XMLHttpRequest();
@@ -319,6 +315,9 @@ glassBtn.addEventListener('click', () => {
       'src',
       xhr.response.collection.items[randomNum].links[0].href,
     );
+
+    console.log(xhr.status);
+    console.log(xhr.response.collection.items[randomNum].links[0].href);
 
     imgElement.className = 'd-block rounded planet_img_api rounded';
     // imgElement.height = '200';
@@ -381,9 +380,26 @@ glassBtn.addEventListener('click', () => {
     const paraDescribe = document.createElement('p');
 
     paraDescribe.className = 'para_img_ttl img_des_min_w p-3';
-    paraDescribe.textContent = `${xhr.response.collection.items[randomNum].data[0].description}
 
-     `;
+    const regexTags = /<[^>]*>/g; // Match any HTML tags
+    const regexEntities = /&[a-zA-Z]+;/g; // Match HTML entities like &lt;
+    const regexHref = /href\s*=\s*["'][^"']*["']/g; // Match href attributes
+    const unwantedHref =
+      /href=http:\/\/www\.facebook\.com\/pages\/Greenbelt-MD\/NASA-Goddard\/39501/; // Match the unwanted href
+
+    // paraDescribe.textContent = `${xhr.response.collection.items[randomNum].data[0].description}
+
+    //  `;
+
+    let description =
+      xhr.response.collection.items[randomNum].data[0].description;
+
+    description = description.replace(regexTags, '');
+    description = description.replace(regexEntities, '');
+    description = description.replace(regexHref, '');
+    description = description.replace(unwantedHref, '');
+
+    paraDescribe.textContent = description;
 
     const header_title = document.querySelector('.header_Img_ttl');
     const image_description = document.querySelector('.para_img_ttl');
@@ -574,6 +590,29 @@ glassBtn.addEventListener('click', () => {
   });
 
   xhr.send();
+}
+
+glassBtn.addEventListener('click', () => {
+  const img = document.querySelector('.planet_img_api');
+  const idOne = document.querySelector('#onceCalled');
+
+  if (idOne) {
+    idOne.remove();
+  }
+
+  callApi();
+});
+
+inputSearchOnEnter.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const inputSearchInputLength = document.querySelector('form input').value;
+    if (inputSearchInputLength === '') {
+      alert('Must enter planet name or anything space related');
+    }
+
+    callApi();
+  }
 });
 
 const favoritesView = document.querySelector('[data-view="favorites"]');
